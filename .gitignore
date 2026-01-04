@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Personal/sensitive
+personal/credentials*
+personal/keys*
+*.env
