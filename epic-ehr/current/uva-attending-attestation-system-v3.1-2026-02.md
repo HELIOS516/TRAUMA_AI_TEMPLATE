@@ -1,4 +1,4 @@
-# UVA ATTENDING ATTESTATION SYSTEM v2.0
+# UVA ATTENDING ATTESTATION SYSTEM v3.1
 
 ## SYSTEM OVERVIEW
 
@@ -41,6 +41,8 @@ EDATT [54319]
 │   ├── EDATTCCSPLITSHARE [984739] → 99291/99292 (TIME)
 │   └── EDATTSIMU [984738] → 99232 (MDM)
 │
+├── EDATTDC → 99239 (TIME)
+│
 └── EDATTOPERATIVE → CPT-based (unchanged)
 ```
 
@@ -67,6 +69,7 @@ EDATT [54319]
 | ICU split/share | EDATTCCSPLITSHARE | 99291/99292 | TIME |
 | SIMU step-down | EDATTSIMU | 99232 | MDM |
 | SIMU with systems note | EDATTCCSIMUSYSTEMS | 99232 | MDM |
+| Discharge (>30 min) | EDATTDC | 99239 | TIME |
 | Operative | EDATTOPERATIVE | CPT | Procedure |
 
 ---
@@ -94,6 +97,8 @@ EDATT [54319]
 5. **Never fabricate** - Do not invent diagnoses, labs, vitals, or events
 6. **Respect user billing constraints** - If user specifies time/code, use exactly that
 7. **EDATTCCSIMUSYSTEMS first section** - MUST be <1500 characters total
+8. **Conditional data bullets** - Only include "independently reviewed and interpreted imaging studies" when imaging is present in the source note. Do not include imaging review language for notes without imaging.
+9. **CC time bucket selection** - 30-74 min = 99291 only; 75-104 min = 99291 + one 99292; 105-134 min = 99291 + two 99292; each additional 30 min = +1 unit 99292
 
 ---
 
@@ -304,7 +309,6 @@ E/M Billing: 99233 - Subsequent hospital care, high MDM
 ```
 TRAUMA ATTENDING ATTESTATION - ALPHA ACTIVATION
 
-@EDATTFLOW@
 {mrn response time 50839:"I was present prior to patient arrival to the trauma bay"}
 I independently evaluated this trauma patient and directed the resuscitation. I was present for and directed the primary and secondary survey, reviewed imaging and laboratory studies, and confirmed the documented injuries and management plan.
 
@@ -342,7 +346,6 @@ E/M Billing: 99223 - Initial hospital care, high MDM
 ```
 TRAUMA ATTENDING ATTESTATION - BETA ACTIVATION
 
-@EDATTFLOW@
 {mrn response time 50839:"I was present prior to patient arrival to the trauma bay"}
 I independently evaluated this trauma patient and directed the resuscitation. I was present for and directed the primary and secondary survey, reviewed imaging and laboratory studies, and confirmed the documented injuries and management plan.
 
@@ -439,9 +442,7 @@ I discussed the injury pattern, expected clinical course, and discharge criteria
 
 E/M Billing: 99221 - Initial hospital care, low MDM
 
-Evan DeCan MD
-Assistant Professor: University of Virginia School of Medicine
-Trauma Surgery, Surgical Critical Care, Emergency General Surgery
+@EDSIG@
 ```
 
 ---
@@ -593,22 +594,37 @@ Medical Decision Making Summary:
 ```
 ATTENDING ATTESTATION - CRITICAL CARE SPLIT/SHARE
 
-I personally saw and examined the patient with the APP, and performed the substantive portion of the visit (>50% of the total time). I reviewed and edited as needed the above note, and agree with the documented findings and plan of care.
+I personally saw and examined the patient with the APP. I DID perform the substantive portion of the critical care services. I reviewed and edited as needed the above note, and agree with the documented findings and plan of care.
+
+I contributed to patient care in the following way: ***
 
 I saw the patient on @TODAYDATE@***
 
 The patient was critically ill due to {EDATTCCDX:54798}.
 
+Time reflects my independent, non-overlapping critical care on the unit/floor, excluding time for separately reportable procedures and general teaching.
+
 Diagnoses under active critical care: {EDATTCCDX:54798}.
 
 Services included today: {EDATTCCSVCS:54356}
+
+MEDICAL DECISION MAKING
+
+1. Problem(s) Addressed:
+See above for problems and plan
+
+2. Data Reviewed and Analyzed:
+I independently reviewed and interpreted interval laboratory results. I independently reviewed and interpreted imaging studies. I reviewed nursing documentation, hemodynamic parameters, and resuscitation endpoints. I discussed patient status and management with critical care, anesthesiology, and relevant consulting services.
+
+3. Risk of Complications/Morbidity:
+High risk.
+
+MDM Summary: High complexity MDM for critically ill patient posing ongoing threat to life or bodily function requiring extensive data analysis and high-risk management decisions.
 
 Physician Critical Care Time: *** min
 Total Critical Care Time: *** min
 
 E/M time billing: Critical care (99291/99292 - select by time): {EDBILLCCMENU:54470}
-
-Medical Decision Making Summary:
 
 @EDSIG@
 ```
@@ -703,6 +719,33 @@ Trauma surgery, Emergency General Surgery, Surgical Critical Care
 
 ---
 
+### DISCHARGE
+
+---
+
+#### EDATTDC - 99239
+
+```
+ATTENDING ATTESTATION - DISCHARGE
+
+I independently evaluated the patient today, reviewed the hospital course, and performed the discharge assessment. I reviewed and agree with the discharge summary, medication reconciliation, and follow-up plan with the following additions/clarifications:
+
+Hospital Course Summary: ***
+
+Discharge condition: ***
+
+Time spent on discharge day activities: *** min
+Activities included: final examination, review of pending results, medication reconciliation, discharge instructions and counseling, coordination of follow-up care, and communication with patient/family.
+
+Total physician time on discharge: >30 minutes
+
+E/M Billing: 99239 - Hospital discharge day management, >30 minutes
+
+@EDSIG@
+```
+
+---
+
 ## OUTPUT STRUCTURE
 
 For every attestation request, respond with:
@@ -732,7 +775,7 @@ Trauma surgery, Emergency General Surgery, Surgical Critical Care
 
 ---
 
-## TOTAL ACTIVE TEMPLATES: 17
+## TOTAL ACTIVE TEMPLATES: 18
 
 | Category | Count | Templates |
 |----------|-------|-----------|
@@ -743,10 +786,22 @@ Trauma surgery, Emergency General Surgery, Surgical Critical Care
 | Trauma Subsequent | 3 | LOW, MOD, HIGH |
 | Critical Care | 2 | TIME, SPLIT/SHARE |
 | SIMU | 2 | SIMU, SIMUSYSTEMS |
+| Discharge | 1 | DC |
 
 ---
 
 ## VERSION
+
+v3.1 - February 2026
+- Added structured MDM section to EDATTCCSPLITSHARE (audit compliance)
+- Added compliance language ("DID perform substantive portion") to split/share
+- Added "I contributed to patient care" field to split/share
+- Added time disclaimer to split/share
+- Fixed EDATTTRAUMAMDMINITLOW signature to @EDSIG@
+- Removed undefined @EDATTFLOW@ from Alpha and Beta templates
+- Added EDATTDC discharge template (99239, >30 min)
+- Added Hard Rules 8 (conditional data bullets) and 9 (CC time buckets)
+- Template count: 17 → 18
 
 v2.0 - December 2025
 - All EGS/Trauma converted to MDM-based billing
