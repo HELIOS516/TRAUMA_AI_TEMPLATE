@@ -19,3 +19,6 @@
 personal/credentials*
 personal/keys*
 *.env
+
+# OMC state
+.omc/
